@@ -133,49 +133,111 @@ class Matrix
     return Mult;
   }
 
- 
-  T* operator[](int index) const 
-  {
-      return M[index]; 
-  }
-  int get_rows() const 
-  {
-      return rows; 
-  }
-
-  int get_columns() const 
-  { 
-      return columns; 
-  }
-
-  bool operator==(const Matrix& G) const 
-  {
+   Matrix Inverse() 
+   {
+    if (rows != columns) 
+    {
+      return *this;
+    }
+    Matrix<T> m(rows, 2 * rows);
+    m = *this;
     for (int i = 0; i < rows; i++) 
     {
-      for (int j = 0; j < columns; j++) 
+      m.M[i][rows + i] = 1;
+    }
+    for (int i = 0; i < rows; i++) 
+    {
+      for (int j = i + 1; j < rows; j++) 
       {
-        if (M[i][j] == G[i][j]);
-        else
-          return false;
+        double f = m.M[j][i] / m.M[i][i];
+        for (int k = i; k < 2 * rows; k++) 
+        {
+          if (i == k) 
+          {
+            m.M[j][k] = 0;
+          } 
+          else
+          {
+            m.M[j][k] -= f * m.M[i][k];
+          }
+        }
       }
     }
-    return true;
+    for (int i = rows - 1; i >= 0; i--) 
+    {
+      for (int j = rows; j < 2 * rows; j++) 
+      {
+        m.M[i][j] /= m.M[i][i];
+      }
+      for (int j = i - 1; j >= 0; j--) {
+        for (int k = rows; k < 2 * rows; k++)
+        {
+          m.M[j][k] -= m.M[i][k] * m.M[j][i];
+        }
+      }
+    }
+    Matrix<T> Inv(rows, rows);
+    for (int i = 0; i < rows; i++)
+    {
+      for (int j = 0; j < rows; j++) 
+      {
+        Inv.M[i][j] = m.M[i][j + rows];
+      }
+    }
+    return Inv;
   }
 
-  bool operator!=(const Matrix<T>& G) const 
+  bool operator==(const Matrix<T>& m) const
   {
     for (int i = 0; i < rows; i++) 
     {
       for (int j = 0; j < columns; j++) 
       {
-        if (M[i][j] == G.M[i][j])
+        if (std::is_floating_point<T>::value) 
         {
-          return false;
+          if (abs(M[i][j] - m.M[i][j]) > std::numeric_limits<T>::epsilon()) 
+          {
+            return false;
+          }
+        } 
+        else 
+        {
+          if (M[i][j] != m.M[i][j]) 
+            return false;
         }
       }
     }
     return true;
   }
+  bool operator!=(const Matrix<T>& m) const 
+  {
+    for (int i = 0; i < rows; i++) 
+    {
+      for (int j = 0; j < columns; j++) 
+      {
+        if (M[i][j] == m.M[i][j]) 
+                return false;
+      }
+    }
+    return true;
+  }
+
+  
+  T* operator[](int index) const 
+  {
+      return M[index]; 
+  }
+
+  int get_rows() const
+  {
+      return rows;
+  }
+
+  int get_columns() const 
+  {
+      return columns; 
+  }
+
   ~Matrix() 
   { 
       
